@@ -654,7 +654,7 @@ tr.own-club td:first-child{color:var(--brass); font-weight:600;}
     <div class="screen" id="screen-stadium">
       <div style="display:flex; border-radius:8px; overflow:hidden; margin-bottom:14px; border:1px solid rgba(191,230,240,0.15);">
         <button id="tabStadiumBtn" onclick="showStadiumTab('stadium')" style="flex:1; padding:9px 4px; font-family:var(--font-display); font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:0.3px; cursor:pointer; border:none; background:var(--brass); color:var(--ink);">Stadium</button>
-        <button id="tabCompoundBtn" onclick="showStadiumTab('compound')" style="flex:1; padding:9px 4px; font-family:var(--font-display); font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:0.3px; cursor:pointer; border:none; background:rgba(255,255,255,0.05); color:var(--ice-dim);">Compound</button>
+        <button id="tabCampusBtn" onclick="showStadiumTab('campus')" style="flex:1; padding:9px 4px; font-family:var(--font-display); font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:0.3px; cursor:pointer; border:none; background:rgba(255,255,255,0.05); color:var(--ice-dim);">Campus</button>
       </div>
 
       <div id="stadiumTabContent">
@@ -676,9 +676,9 @@ tr.own-club td:first-child{color:var(--brass); font-weight:600;}
         <div id="stadiumFacilities"></div>
       </div>
 
-      <div id="compoundTabContent" style="display:none;">
+      <div id="campusTabContent" style="display:none;">
         <p style="font-size:10.5px; color:var(--ice-dim); margin:-2px 0 12px;">Independent plots around the ground. Build and upgrade them in any order — none of them depend on the stadium's level or on each other.</p>
-        <div id="compoundPlotsList"></div>
+        <div id="campusPlotsList"></div>
       </div>
     </div>
 
@@ -888,7 +888,7 @@ function atmosphereBonus(){
 // independent of stadiumCapacity() — a full stadium with poor access still can't sell out.
 const CAR_PARK_FILL_CAPS = [0.6, 0.8, 0.95, 1.0];
 function carParkCapacity(){
-  const tier = (state.compound && state.compound.carPark) || 0;
+  const tier = (state.campus && state.campus.carPark) || 0;
   return Math.round(stadiumCapacity() * CAR_PARK_FILL_CAPS[tier]);
 }
 
@@ -922,11 +922,11 @@ function buyBigScreen(){
   saveGame();
 }
 
-// ============ COMPOUND ============
+// ============ CAMPUS ============
 // Independent, upgradeable plots next to the ground. Each has its own tier
 // (0 = not built) and cost curve, and is unrelated to the stadium's linear level.
-const COMPOUND_MAX_LEVEL = 3;
-const COMPOUND_PLOTS = {
+const CAMPUS_MAX_LEVEL = 3;
+const CAMPUS_PLOTS = {
   trainingPitch: { label:"Training Pitch", desc:"A two-pitch training complex that speeds up development for your young players.", base:20000 },
   academy:       { label:"Youth Academy", desc:"Periodically graduates a young, cheap, promising player into your first team.", base:35000 },
   medical:       { label:"Medical & Sports Science Center", desc:"Reduces how often players get injured and how long they're out.", base:30000 },
@@ -935,20 +935,20 @@ const COMPOUND_PLOTS = {
   carPark:        { label:"Car Park & Access Road", desc:"Raises how much of matchday demand can actually reach and park at the ground.", base:12000 }
 };
 
-function compoundUpgradeCost(key){
-  const base = COMPOUND_PLOTS[key].base;
-  const level = state.compound[key] || 0;
+function campusUpgradeCost(key){
+  const base = CAMPUS_PLOTS[key].base;
+  const level = state.campus[key] || 0;
   return Math.round(base * Math.pow(1.6, level) / 500) * 500;
 }
 
-function upgradeCompoundPlot(key){
-  const level = state.compound[key] || 0;
-  if(level >= COMPOUND_MAX_LEVEL) return;
-  const cost = compoundUpgradeCost(key);
+function upgradeCampusPlot(key){
+  const level = state.campus[key] || 0;
+  if(level >= CAMPUS_MAX_LEVEL) return;
+  const cost = campusUpgradeCost(key);
   if(state.cash < cost) return;
   state.cash -= cost;
-  state.compound[key] = level + 1;
-  state.ledger.push({desc:`${COMPOUND_PLOTS[key].label} upgraded to tier ${state.compound[key]}`, amount:-cost, matchday:state.matchday});
+  state.campus[key] = level + 1;
+  state.ledger.push({desc:`${CAMPUS_PLOTS[key].label} upgraded to tier ${state.campus[key]}`, amount:-cost, matchday:state.matchday});
   renderAll();
   saveGame();
 }
@@ -961,11 +961,11 @@ function womensFacilityUnlocked(){
 }
 
 function buyWomensFacility(){
-  if(state.compound.womensFacility) return;
+  if(state.campus.womensFacility) return;
   if(!womensFacilityUnlocked()) return;
   if(state.cash < WOMENS_FACILITY_COST) return;
   state.cash -= WOMENS_FACILITY_COST;
-  state.compound.womensFacility = true;
+  state.campus.womensFacility = true;
   state.ledger.push({desc:"Built the Women's Facility", amount:-WOMENS_FACILITY_COST, matchday:state.matchday});
   renderAll();
   saveGame();
@@ -1015,7 +1015,7 @@ function generateTransferList(count){
 
 // ============ YOUTH ACADEMY ============
 // Generates a young, cheap, promising player straight into the first-team squad
-// each season. Count and quality both scale with the Youth Academy's compound tier.
+// each season. Count and quality both scale with the Youth Academy's campus tier.
 function genAcademyPlayer(tier){
   const weights = [["GK",0.1],["DEF",0.3],["MID",0.35],["FWD",0.25]];
   let r = Math.random(), cum = 0, pos = "MID";
@@ -1027,7 +1027,7 @@ function genAcademyPlayer(tier){
 }
 
 function runAcademyGraduation(){
-  const tier = state.compound.academy || 0;
+  const tier = state.campus.academy || 0;
   if(!tier) return;
   const usedNames = new Set(state.squad.map(p=>p.name));
   const usedLastNames = new Set(state.squad.map(p=>p.name.split(" ").slice(1).join(" ")));
@@ -1110,13 +1110,13 @@ function squadStrength(xi){
 // ============ INJURIES (Medical Center) ============
 // A lightweight injury system: players who featured in a match have a small chance
 // of picking up an injury that sidelines them for a few matches. Both the chance and
-// the duration are reduced by the Medical Center's compound tier.
+// the duration are reduced by the Medical Center's campus tier.
 function tickInjuries(playedIds){
   state.injuries = (state.injuries || [])
     .map(inj => ({...inj, matchesRemaining: inj.matchesRemaining - 1}))
     .filter(inj => inj.matchesRemaining > 0);
 
-  const tier = state.compound.medical || 0;
+  const tier = state.campus.medical || 0;
   const alreadyInjured = new Set(state.injuries.map(inj=>inj.playerId));
   const chance = Math.max(0, 0.035 * (1 - tier * 0.22));
   const maxDuration = Math.max(1, 4 - tier);
@@ -1137,9 +1137,9 @@ function getInjuredIds(){
 
 // ============ PLAYER DEVELOPMENT (Training Pitch) ============
 // Young players slowly creep up in overall between matches; the rate scales with
-// the Training Pitch's compound tier.
+// the Training Pitch's campus tier.
 function tickPlayerDevelopment(){
-  const tier = state.compound.trainingPitch || 0;
+  const tier = state.campus.trainingPitch || 0;
   if(!tier) return;
   state.squad.forEach(p=>{
     if(p.age >= 23) return;
@@ -1194,7 +1194,7 @@ function initGame(){
       bigScreen:false,
       pitchQuality:false
     },
-    compound:{
+    campus:{
       trainingPitch:0,
       academy:0,
       medical:0,
@@ -1304,14 +1304,17 @@ async function continueGame(){
       }
       if(state.stadium.bigScreen==null) state.stadium.bigScreen = false;
       if(state.stadium.pitchQuality==null) state.stadium.pitchQuality = false;
-      if(!state.compound) state.compound = {trainingPitch:0, academy:0, medical:0, megastore:0, clubOffices:0, carPark:0, womensFacility:false};
-      if(state.compound.megastore==null) state.compound.megastore = state.stadium.megastore ? 1 : 0;
-      if(state.compound.trainingPitch==null) state.compound.trainingPitch = 0;
-      if(state.compound.academy==null) state.compound.academy = 0;
-      if(state.compound.medical==null) state.compound.medical = 0;
-      if(state.compound.clubOffices==null) state.compound.clubOffices = 0;
-      if(state.compound.carPark==null) state.compound.carPark = 0;
-      if(state.compound.womensFacility==null) state.compound.womensFacility = false;
+      // "compound" was renamed to "campus" shortly after this feature shipped — carry over any save
+      // that still has the old key before falling back to fresh defaults.
+      if(!state.campus) state.campus = state.compound || {trainingPitch:0, academy:0, medical:0, megastore:0, clubOffices:0, carPark:0, womensFacility:false};
+      delete state.compound;
+      if(state.campus.megastore==null) state.campus.megastore = state.stadium.megastore ? 1 : 0;
+      if(state.campus.trainingPitch==null) state.campus.trainingPitch = 0;
+      if(state.campus.academy==null) state.campus.academy = 0;
+      if(state.campus.medical==null) state.campus.medical = 0;
+      if(state.campus.clubOffices==null) state.campus.clubOffices = 0;
+      if(state.campus.carPark==null) state.campus.carPark = 0;
+      if(state.campus.womensFacility==null) state.campus.womensFacility = false;
       delete state.stadium.megastore;
       if(!state.injuries) state.injuries = [];
       delete state.currentStadiumIdx;
@@ -1343,7 +1346,7 @@ const SCREEN_RENDERERS = {
   squad: ()=>{ renderSquad(); renderSquadHub(); },
   tactics: renderTactics,
   transfers: renderTransfers,
-  stadium: ()=>{ renderStadium(); renderCompound(); },
+  stadium: ()=>{ renderStadium(); renderCampus(); },
   finances: renderFinances,
   league: renderLeague
 };
@@ -1470,11 +1473,11 @@ function showSquadTab(tab){
 
 function showStadiumTab(tab){
   document.getElementById("stadiumTabContent").style.display = tab==="stadium" ? "block" : "none";
-  document.getElementById("compoundTabContent").style.display = tab==="compound" ? "block" : "none";
+  document.getElementById("campusTabContent").style.display = tab==="campus" ? "block" : "none";
   document.getElementById("tabStadiumBtn").style.background = tab==="stadium" ? "var(--brass)" : "rgba(255,255,255,0.05)";
   document.getElementById("tabStadiumBtn").style.color = tab==="stadium" ? "var(--ink)" : "var(--ice-dim)";
-  document.getElementById("tabCompoundBtn").style.background = tab==="compound" ? "var(--brass)" : "rgba(255,255,255,0.05)";
-  document.getElementById("tabCompoundBtn").style.color = tab==="compound" ? "var(--ink)" : "var(--ice-dim)";
+  document.getElementById("tabCampusBtn").style.background = tab==="campus" ? "var(--brass)" : "rgba(255,255,255,0.05)";
+  document.getElementById("tabCampusBtn").style.color = tab==="campus" ? "var(--ink)" : "var(--ice-dim)";
 }
 
 function showTransferTab(tab){
@@ -1580,24 +1583,24 @@ function renderStadium(){
   `;
 }
 
-function renderCompound(){
+function renderCampus(){
   function tierDots(level){
     let dots = "";
-    for(let i=1;i<=COMPOUND_MAX_LEVEL;i++){
+    for(let i=1;i<=CAMPUS_MAX_LEVEL;i++){
       dots += `<span style="display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:3px; background:${i<=level?'var(--brass)':'rgba(255,255,255,0.15)'};"></span>`;
     }
     return dots;
   }
 
   function plotCard(key){
-    const plot = COMPOUND_PLOTS[key];
-    const level = state.compound[key] || 0;
-    const atMax = level >= COMPOUND_MAX_LEVEL;
-    const cost = compoundUpgradeCost(key);
+    const plot = CAMPUS_PLOTS[key];
+    const level = state.campus[key] || 0;
+    const atMax = level >= CAMPUS_MAX_LEVEL;
+    const cost = campusUpgradeCost(key);
     const canAfford = state.cash >= cost && !atMax;
     const actionHtml = atMax
       ? `<span style="font-size:10px; color:var(--brass); white-space:nowrap;">✓ Maxed</span>`
-      : `<button onclick="upgradeCompoundPlot('${key}')" ${canAfford?"":"disabled"} style="font-size:10px; font-family:var(--font-display); font-weight:600; text-transform:uppercase; padding:7px 10px; border-radius:5px; border:none; cursor:${canAfford?'pointer':'default'}; background:${canAfford?'var(--brass)':'rgba(255,255,255,0.08)'}; color:${canAfford?'var(--ink)':'var(--ice-dim)'}; white-space:nowrap;">Tier ${level}→${level+1} · ${fmtMoney(cost)}</button>`;
+      : `<button onclick="upgradeCampusPlot('${key}')" ${canAfford?"":"disabled"} style="font-size:10px; font-family:var(--font-display); font-weight:600; text-transform:uppercase; padding:7px 10px; border-radius:5px; border:none; cursor:${canAfford?'pointer':'default'}; background:${canAfford?'var(--brass)':'rgba(255,255,255,0.08)'}; color:${canAfford?'var(--ink)':'var(--ice-dim)'}; white-space:nowrap;">Tier ${level}→${level+1} · ${fmtMoney(cost)}</button>`;
     return `
       <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px; border-bottom:1px solid rgba(191,230,240,0.08);">
         <div style="min-width:0;">
@@ -1610,7 +1613,7 @@ function renderCompound(){
     `;
   }
 
-  const womensBuilt = state.compound.womensFacility;
+  const womensBuilt = state.campus.womensFacility;
   const womensUnlocked = womensFacilityUnlocked();
   const womensCanAfford = state.cash >= WOMENS_FACILITY_COST;
   const womensAction = womensBuilt
@@ -1629,7 +1632,7 @@ function renderCompound(){
     </div>
   `;
 
-  document.getElementById("compoundPlotsList").innerHTML = `
+  document.getElementById("campusPlotsList").innerHTML = `
     <div class="card" style="padding:0 14px;">
       ${plotCard("trainingPitch")}
       ${plotCard("academy")}
@@ -2628,7 +2631,7 @@ function applyMatchResult(result){
   tickPlayerDevelopment();
   let resultCode = homeGoals>awayGoals ? "W" : homeGoals<awayGoals ? "L" : "D";
   let fanDelta = resultCode==="W" ? rand(3,7) : resultCode==="L" ? -rand(3,7) : rand(-1,1);
-  fanDelta += (state.compound.clubOffices || 0) * 0.2;
+  fanDelta += (state.campus.clubOffices || 0) * 0.2;
   state.fanInterest = clamp(state.fanInterest + fanDelta, 0, 100);
 
   // Update own table row
@@ -2669,12 +2672,12 @@ function applyMatchResult(result){
   const attendance = isHomeFixture ? Math.min(wantAttendance, stadiumCapacity(), carParkCapacity()) : wantAttendance;
   const soldOut = isHomeFixture && wantAttendance >= Math.min(stadiumCapacity(), carParkCapacity());
   const ticketPrice = 16;
-  const clubOfficesTier = state.compound.clubOffices || 0;
+  const clubOfficesTier = state.campus.clubOffices || 0;
   const ticketEfficiencyMult = 1 + clubOfficesTier * 0.03;
   const sponsorshipMult = 1 + clubOfficesTier * 0.05;
   const matchRevenue = Math.round((isHomeFixture ? attendance * ticketPrice : Math.round(attendance * 0.15 * ticketPrice)) * divMult * ticketEfficiencyMult);
   const sponsorship = Math.round(state.fanInterest * 15 * divMult * sponsorshipMult);
-  const megastoreIncome = Math.round(800 * (state.compound.megastore || 0) * divMult);
+  const megastoreIncome = Math.round(800 * (state.campus.megastore || 0) * divMult);
   const wages = Math.round(state.squad.reduce((s,p)=>s+p.overall,0) * 65);
 
   state.cash += matchRevenue;
