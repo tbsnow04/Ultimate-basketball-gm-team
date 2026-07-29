@@ -909,6 +909,10 @@ function upgradeStadium(){
   state.stadium.level++;
   state.ledger.push({desc:`Stadium upgraded to level ${state.stadium.level}`, amount:-cost, matchday:state.matchday});
   renderAll();
+  // Explicit refresh regardless of which screen/tab is currently active — the stadium
+  // tier can only change here, and both overview images depend on it either way.
+  renderStadiumOverview();
+  renderCampusOverview();
   saveGame();
 }
 
@@ -1490,6 +1494,11 @@ function showStadiumTab(tab){
   document.getElementById("tabStadiumBtn").style.color = tab==="stadium" ? "var(--ink)" : "var(--ice-dim)";
   document.getElementById("tabCampusBtn").style.background = tab==="campus" ? "var(--brass)" : "rgba(255,255,255,0.05)";
   document.getElementById("tabCampusBtn").style.color = tab==="campus" ? "var(--ink)" : "var(--ice-dim)";
+  // Explicit refresh on every tab switch — don't rely on renderAll() having happened to
+  // touch both overview images already. Both functions no-op cheaply if their image key
+  // hasn't changed since the last call.
+  renderStadiumOverview();
+  renderCampusOverview();
 }
 
 function showTransferTab(tab){
