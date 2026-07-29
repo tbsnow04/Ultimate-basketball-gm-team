@@ -658,14 +658,12 @@ tr.own-club td:first-child{color:var(--brass); font-weight:600;}
       </div>
 
       <div id="stadiumTabContent">
-        <p id="stadiumDebugLine" style="font-size:9px; font-family:var(--font-mono); color:#FF6B6B; background:rgba(255,107,107,0.1); border:1px solid rgba(255,107,107,0.4); border-radius:4px; padding:4px 6px; margin:0 0 8px;">DEBUG: loading…</p>
         <div id="stadiumOverview" style="margin-bottom:16px;"></div>
         <p style="font-size:10.5px; color:var(--ice-dim); margin:-2px 0 12px;">Your home ground — one linear track, separate from the Campus plots below.</p>
         <div id="stadiumPlotsList"></div>
       </div>
 
       <div id="campusTabContent" style="display:none;">
-        <p id="campusDebugLine" style="font-size:9px; font-family:var(--font-mono); color:#FF6B6B; background:rgba(255,107,107,0.1); border:1px solid rgba(255,107,107,0.4); border-radius:4px; padding:4px 6px; margin:0 0 8px;">DEBUG: loading…</p>
         <div id="campusOverview" style="margin-bottom:16px;"></div>
         <p style="font-size:10.5px; color:var(--ice-dim); margin:-2px 0 12px;">Independent plots around the ground. Build and upgrade them in any order — none of them depend on each other.</p>
         <div id="campusPlotsList"></div>
@@ -1527,37 +1525,6 @@ function stadiumOverviewImageForState(){
 
 let lastStadiumOverviewImg = null;
 
-// Temporary debug helper — reads the ACTUAL <img> src in the DOM right now and reports
-// which known constant it matches (or "UNRECOGNIZED" if it matches neither), rather than
-// re-deriving the expected answer from state. This is deliberately independent of
-// stadiumOverviewImageForState()/campusOverviewImageForState() so it can catch a case
-// where those functions say one thing but the DOM shows another.
-function debugImageLabel(src, tier0Const, tier1Const, tier0Name, tier1Name){
-  if(src === tier0Const) return tier0Name;
-  if(src === tier1Const) return tier1Name;
-  return `UNRECOGNIZED (${src ? src.length : 0} chars)`;
-}
-
-function updateStadiumDebugLine(){
-  const el = document.getElementById("stadiumDebugLine");
-  if(!el) return;
-  const imgEl = document.getElementById("stadiumOverviewImg");
-  const label = imgEl
-    ? debugImageLabel(imgEl.src, STADIUM_HEADER_IMAGE, STADIUM_HEADER_IMAGE_TIER1, "STADIUM_HEADER_IMAGE (tier0)", "STADIUM_HEADER_IMAGE_TIER1 (tier1+)")
-    : "no <img> element found";
-  el.textContent = `DEBUG stadium tab: state.stadium.level=${state.stadium.level} | img currently loaded = ${label}`;
-}
-
-function updateCampusDebugLine(){
-  const el = document.getElementById("campusDebugLine");
-  if(!el) return;
-  const imgEl = document.getElementById("campusOverviewImg");
-  const label = imgEl
-    ? debugImageLabel(imgEl.src, CAMPUS_BASE_IMAGE, CAMPUS_BASE_IMAGE_TIER1, "CAMPUS_BASE_IMAGE (tier0)", "CAMPUS_BASE_IMAGE_TIER1 (tier1+)")
-    : "no <img> element found";
-  el.textContent = `DEBUG campus tab: state.stadium.level=${state.stadium.level} | img currently loaded = ${label}`;
-}
-
 function renderStadiumOverview(){
   const wrap = document.getElementById("stadiumOverview");
   if(wrap.dataset.built !== "1"){
@@ -1578,7 +1545,6 @@ function renderStadiumOverview(){
     lastStadiumOverviewImg = img;
     document.getElementById("stadiumOverviewImg").src = img;
   }
-  updateStadiumDebugLine();
 }
 
 function renderStadium(){
@@ -1670,7 +1636,6 @@ function renderCampusOverview(){
     lastCampusOverviewImg = img;
     document.getElementById("campusOverviewImg").src = img;
   }
-  updateCampusDebugLine();
 }
 
 function renderCampus(){
