@@ -852,19 +852,23 @@ function genPlayer(position){
 }
 
 // Fixed rollout order — never player-chosen. Existing grandstand stays as-is throughout;
-// the other three sides always develop bottom -> left -> right, except where all sides
-// move together. No per-tier art exists yet — the Stadium tab shows one reference photo
-// regardless of tier, same honest placeholder pattern as the Campus tab.
-const STADIUM_MAX_LEVEL = 12;
+// the other three sides always develop together from here on.
+//
+// Isolating the seat/roof upgrade to one stand at a time (old tiers 5, 6, 7 — bottom,
+// then left, then right) was dropped: repeated attempts to generate art for a single
+// stand kept upgrading the wrong one or bleeding changes across stand boundaries. Tier 5
+// now delivers all three open stands rebuilt simultaneously — full seating and a matching
+// grandstand structure on all four sides at once, with a slightly modernized overall look
+// — and former tiers 8-12 shifted down two slots to fill the gap (6-10). STADIUM_MAX_LEVEL
+// dropped from 12 to 10 accordingly.
+const STADIUM_MAX_LEVEL = 10;
 const STADIUM_TIERS = [
   "One grandstand, three open sides",
   "Grassy knoll — all three open sides",
   "Open terracing (benches) — all three open sides",
   "Roof added — bottom side",
   "Roof added — left & right sides (all four sides covered)",
-  "Bottom stand rebuilt with seats — full grandstand",
-  "Left stand rebuilt with seats — full grandstand",
-  "Right stand rebuilt with seats — full single-tier bowl",
+  "All three stands rebuilt with seats — full matching grandstand, modernized look",
   "Second tier added — bottom",
   "Second tier added — left",
   "Second tier added — right",
@@ -961,10 +965,11 @@ function campusUpgradeCost(key){
   return Math.round(base * Math.pow(1.6, level) / 500) * 500;
 }
 
-// From stadium level 8 onward the stadium's own footprint expands outward into the
-// Car Park plot — it stops being upgradeable from that point on, frozen at whatever tier
-// it had already reached.
-const STADIUM_LEVEL_LOCKS_CAR_PARK = 8;
+// From stadium level 6 onward (second-tier construction begins — see STADIUM_TIERS) the
+// stadium's own footprint expands outward into the Car Park plot — it stops being
+// upgradeable from that point on, frozen at whatever tier it had already reached.
+// (This was level 8 before the tier 5-7 roadmap collapse shifted everything down two.)
+const STADIUM_LEVEL_LOCKS_CAR_PARK = 6;
 function carParkLockedByStadium(){
   return state.stadium.level >= STADIUM_LEVEL_LOCKS_CAR_PARK;
 }
@@ -1320,6 +1325,9 @@ async function continueGame(){
       }
       if(state.stadium.bigScreen==null) state.stadium.bigScreen = false;
       if(state.stadium.pitchQuality==null) state.stadium.pitchQuality = false;
+      // The tier 5-7 roadmap collapse dropped STADIUM_MAX_LEVEL from 12 to 10 — clamp any
+      // save made under the old numbering rather than leave it pointing past the new max.
+      state.stadium.level = Math.min(state.stadium.level, STADIUM_MAX_LEVEL);
       // "compound" was renamed to "campus" shortly after this feature shipped — carry over any save
       // that still has the old key before falling back to fresh defaults.
       if(!state.campus) state.campus = state.compound || {trainingPitch:0, academy:0, medical:0, megastore:0, clubOffices:0, carPark:0, womensFacility:false};
