@@ -1,0 +1,24 @@
+{
+  "appId": "com.grassrootsfc.app",
+  "appName": "Grassroots FC",
+  "webDir": "www",
+  "backgroundColor": "#0F2E1D",
+  "ios": {
+    "contentInset": "always",
+    "backgroundColor": "#0F2E1D"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 800,
+      "backgroundColor": "#0F2E1D",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "LIGHT",
+      "overlaysWebView": false
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon"
+    }
+  }
+}

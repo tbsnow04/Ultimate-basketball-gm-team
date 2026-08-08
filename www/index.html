@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Snow FC — Academy to Glory</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Grassroots FC — Academy to Glory</title>
 <style>
 
 :root{
@@ -51,6 +51,7 @@ body{
   align-items:center;
   gap:12px;
   padding:16px 16px 12px;
+  padding-top:calc(16px + env(safe-area-inset-top));
   border-bottom:1px solid rgba(191,230,240,0.15);
 }
 .crest{
@@ -96,7 +97,7 @@ body{
 .screen{
   flex:1;
   padding:16px;
-  padding-bottom:90px;
+  padding-bottom:calc(90px + env(safe-area-inset-bottom));
   overflow-y:auto;
   display:none;
   animation:fadeIn 0.2s ease;
@@ -454,6 +455,7 @@ tr.own-club td:first-child{color:var(--brass); font-weight:600;}
   background:rgba(10,25,17,0.97);
   border-top:1px solid rgba(191,230,240,0.15);
   backdrop-filter:blur(6px);
+  padding-bottom:env(safe-area-inset-bottom);
 }
 .nav-btn{
   flex:1;
@@ -480,6 +482,8 @@ tr.own-club td:first-child{color:var(--brass); font-weight:600;}
   align-items:center;
   justify-content:center;
   padding:32px 24px;
+  padding-top:calc(32px + env(safe-area-inset-top));
+  padding-bottom:calc(32px + env(safe-area-inset-bottom));
   text-align:center;
 }
 .setup-title{
@@ -502,8 +506,8 @@ tr.own-club td:first-child{color:var(--brass); font-weight:600;}
 
   <!-- Setup screen -->
   <div class="setup-screen" id="setupScreen">
-    <div class="setup-title" style="font-size:34px; letter-spacing:1px; color:var(--ice); margin-bottom:2px;">SNOW FC</div>
-    <div class="setup-sub">Academy to Glory — Prototype</div>
+    <div class="setup-title" style="font-size:34px; letter-spacing:1px; color:var(--ice); margin-bottom:2px;">GRASSROOTS FC</div>
+    <div class="setup-sub">Academy to Glory</div>
     <div id="saveStatusNote" style="font-size:11px; color:var(--ice-dim); margin-bottom:16px; font-family:var(--font-mono);"></div>
     <button class="play-btn" id="continueSaveBtn" style="display:none; margin-bottom:10px;" onclick="continueGame()">Continue Save</button>
     <button class="play-btn" id="newGameBtn" onclick="startNewGame()" style="background:transparent; border:1px solid var(--brass); color:var(--brass);">New Game</button>
@@ -514,7 +518,7 @@ tr.own-club td:first-child{color:var(--brass); font-weight:600;}
     <div class="header">
       <div style="width:4px; height:34px; background:var(--brass); border-radius:2px; flex-shrink:0;"></div>
       <div class="header-text">
-        <p class="club-name">Snow FC</p>
+        <p class="club-name">Grassroots FC</p>
         <p class="club-sub" id="matchdayLabel">Matchday 1</p>
       </div>
       <div class="cash-pill" id="cashPill">£0</div>
@@ -716,7 +720,7 @@ tr.own-club td:first-child{color:var(--brass); font-weight:600;}
   <div class="match-overlay" id="matchOverlay">
     <div id="venueTag" style="font-family:var(--font-mono); font-size:11px; color:var(--brass); letter-spacing:1px; text-transform:uppercase; margin-bottom:8px;">HOME</div>
     <div class="scoreboard">
-      <div class="sb-team" id="sbHome">SNOW FC</div>
+      <div class="sb-team" id="sbHome">GRASSROOTS</div>
       <div class="sb-score" id="sbScore">0 – 0</div>
       <div class="sb-team" id="sbAway">OPP</div>
     </div>
@@ -920,6 +924,7 @@ function upgradeStadium(){
   state.cash -= cost;
   state.stadium.level++;
   state.ledger.push({desc:`Stadium upgraded to level ${state.stadium.level}`, amount:-cost, matchday:state.matchday});
+  haptic("MEDIUM");
   renderAll();
   // Explicit refresh regardless of which screen/tab is currently active — the stadium
   // tier can only change here, and both overview images depend on it either way.
@@ -939,6 +944,7 @@ function buyBigScreen(){
   state.stadium.bigScreen = true;
   state.fanInterest = Math.min(100, state.fanInterest + 10);
   state.ledger.push({desc:"Installed big screen & scoreboard", amount:-cost, matchday:state.matchday});
+  haptic("MEDIUM");
   renderAll();
   saveGame();
 }
@@ -950,6 +956,7 @@ function buyPitchQuality(){
   state.cash -= cost;
   state.stadium.pitchQuality = true;
   state.ledger.push({desc:"Upgraded pitch quality & undersoil heating", amount:-cost, matchday:state.matchday});
+  haptic("MEDIUM");
   renderAll();
   saveGame();
 }
@@ -990,6 +997,7 @@ function upgradeCampusPlot(key){
   state.cash -= cost;
   state.campus[key] = level + 1;
   state.ledger.push({desc:`${CAMPUS_PLOTS[key].label} upgraded to tier ${state.campus[key]}`, amount:-cost, matchday:state.matchday});
+  haptic("MEDIUM");
   renderAll();
   saveGame();
 }
@@ -1008,6 +1016,7 @@ function buyWomensFacility(){
   state.cash -= WOMENS_FACILITY_COST;
   state.campus.womensFacility = true;
   state.ledger.push({desc:"Built the Women's Facility", amount:-WOMENS_FACILITY_COST, matchday:state.matchday});
+  haptic("MEDIUM");
   renderAll();
   saveGame();
 }
@@ -1196,7 +1205,7 @@ function lineupRatings(xi){
 // ============ INIT ============
 function initGame(){
   state = {
-    clubName:"Snow FC",
+    clubName:"Grassroots FC",
     cash:5000000,
     fanInterest:50,
     formation:"4-4-2",
@@ -1241,7 +1250,7 @@ function initGame(){
     ledger:[],
     lastResult:null,
     table: [
-      {name:"Snow FC", p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0, own:true}
+      {name:"Grassroots FC", p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0, own:true}
     ]
   };
   state.opponents.forEach(o=>{
@@ -1254,18 +1263,62 @@ function initGame(){
   saveGame();
 }
 
-const SAVE_KEY = "snowfc-save-v1";
+const SAVE_KEY = "grassrootsfc-save-v1";
+
+// ============ STORAGE ============
+// Native builds (Capacitor/iOS) write a real file via the Filesystem plugin, referenced
+// through the global window.Capacitor.Plugins bridge rather than an ES import - this file
+// has no bundler and is loaded as-is, both as a plain browser page and as the Capacitor
+// app's bundled web asset. Directory/Encoding values below are the plugin's enum string
+// values, hardcoded since we don't import the @capacitor/filesystem package here.
+// Falls back to localStorage when Capacitor isn't present (plain browser / dev testing),
+// so the same file keeps working exactly as it did before this migration.
+const GameStorage = {
+  isNative(){
+    return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  },
+  async get(key){
+    if(this.isNative()){
+      try{
+        const { Filesystem } = window.Capacitor.Plugins;
+        const result = await Filesystem.readFile({ path: key + ".json", directory: "DATA", encoding: "utf8" });
+        return result.data;
+      }catch(e){
+        return null; // file doesn't exist yet - same as "no save"
+      }
+    }
+    return localStorage.getItem(key);
+  },
+  async set(key, value){
+    if(this.isNative()){
+      const { Filesystem } = window.Capacitor.Plugins;
+      await Filesystem.writeFile({ path: key + ".json", data: value, directory: "DATA", encoding: "utf8" });
+      return;
+    }
+    localStorage.setItem(key, value);
+  },
+  async remove(key){
+    if(this.isNative()){
+      try{
+        const { Filesystem } = window.Capacitor.Plugins;
+        await Filesystem.deleteFile({ path: key + ".json", directory: "DATA" });
+      }catch(e){}
+      return;
+    }
+    localStorage.removeItem(key);
+  }
+};
 
 let saveOk = null;
 
 async function saveGame(){
   try{
-    await window.storage.set(SAVE_KEY, JSON.stringify(state), false);
+    await GameStorage.set(SAVE_KEY, JSON.stringify(state));
     saveOk = true;
   }catch(e){
     try{
       await new Promise(r=>setTimeout(r, 400));
-      await window.storage.set(SAVE_KEY, JSON.stringify(state), false);
+      await GameStorage.set(SAVE_KEY, JSON.stringify(state));
       saveOk = true;
     }catch(e2){
       saveOk = false;
@@ -1276,9 +1329,9 @@ async function saveGame(){
 
 async function checkForSave(){
   try{
-    const result = await window.storage.get(SAVE_KEY, false);
-    if(result && result.value){
-      const saved = JSON.parse(result.value);
+    const saveJson = await GameStorage.get(SAVE_KEY);
+    if(saveJson){
+      const saved = JSON.parse(saveJson);
       document.getElementById("continueSaveBtn").style.display = "block";
       document.getElementById("saveStatusNote").textContent = `Save found — Matchday ${saved.matchday}, ${fmtMoney(saved.cash)} in the bank.`;
       document.getElementById("newGameBtn").style.background = "transparent";
@@ -1296,9 +1349,9 @@ async function checkForSave(){
 
 async function continueGame(){
   try{
-    const result = await window.storage.get(SAVE_KEY, false);
-    if(result && result.value){
-      state = JSON.parse(result.value);
+    const saveJson = await GameStorage.get(SAVE_KEY);
+    if(saveJson){
+      state = JSON.parse(saveJson);
       if(!state.listings) state.listings = [];
       state.listings.forEach(l=>{
         if(l.maxOffers==null) l.maxOffers = rand(2,5);
@@ -1369,6 +1422,92 @@ function startNewGame(){
 
 checkForSave();
 
+// ============ NATIVE (CAPACITOR) INTEGRATION ============
+// Everything here is a no-op in a plain browser (window.Capacitor is undefined there),
+// so this file keeps working identically for local/dev testing outside the native app.
+function isNative(){
+  return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+}
+
+function haptic(style){
+  if(!isNative()) return;
+  try{ window.Capacitor.Plugins.Haptics.impact({ style: style || "LIGHT" }); }catch(e){}
+}
+
+// Background reminder triggers — both read current state at the moment the app is
+// backgrounded, since nothing in this game simulates while it's closed. Re-evaluated
+// and rescheduled every time the app backgrounds, and cancelled every time it returns
+// to the foreground, so reminders never pile up or go stale.
+const NOTIF_ID_OFFERS = 1001;
+const NOTIF_ID_LINEUP = 1002;
+const REMINDER_DELAY_MS = 4 * 60 * 60 * 1000; // 4 hours
+
+function pendingTransferOfferPlayer(){
+  const withOffers = (state.listings || []).find(l => (l.offers||[]).length > 0);
+  return withOffers ? withOffers.playerName : null;
+}
+
+function lineupNeedsAttentionPlayer(){
+  const xi = getStartingXI();
+  const suspended = new Set(state.suspendedIds || []);
+  const injured = getInjuredIds();
+  const flagged = xi.find(p => p && (suspended.has(p.id) || injured.has(p.id)));
+  return flagged ? flagged.name : null;
+}
+
+async function cancelBackgroundReminders(){
+  if(!isNative()) return;
+  try{
+    await window.Capacitor.Plugins.LocalNotifications.cancel({
+      notifications: [{ id: NOTIF_ID_OFFERS }, { id: NOTIF_ID_LINEUP }]
+    });
+  }catch(e){}
+}
+
+async function scheduleBackgroundReminders(){
+  if(!isNative()) return;
+  await cancelBackgroundReminders();
+  try{
+    const notifications = [];
+    const offerPlayer = pendingTransferOfferPlayer();
+    if(offerPlayer){
+      notifications.push({
+        id: NOTIF_ID_OFFERS,
+        title: "Grassroots FC",
+        body: `You have a transfer offer waiting on ${offerPlayer}.`,
+        schedule: { at: new Date(Date.now() + REMINDER_DELAY_MS) }
+      });
+    }
+    const lineupPlayer = lineupNeedsAttentionPlayer();
+    if(lineupPlayer){
+      notifications.push({
+        id: NOTIF_ID_LINEUP,
+        title: "Grassroots FC",
+        body: `${lineupPlayer} is unavailable for your next match — check your lineup.`,
+        schedule: { at: new Date(Date.now() + REMINDER_DELAY_MS) }
+      });
+    }
+    if(notifications.length){
+      await window.Capacitor.Plugins.LocalNotifications.schedule({ notifications });
+    }
+  }catch(e){}
+}
+
+function initNativeIntegrations(){
+  if(!isNative()) return;
+  const { StatusBar, SplashScreen, LocalNotifications, App } = window.Capacitor.Plugins;
+  StatusBar?.setOverlaysWebView({ overlay: false }).catch(()=>{});
+  StatusBar?.setStyle({ style: "LIGHT" }).catch(()=>{});
+  SplashScreen?.hide().catch(()=>{});
+  LocalNotifications?.requestPermissions().catch(()=>{});
+  App?.addListener("appStateChange", ({ isActive }) => {
+    if(isActive) cancelBackgroundReminders();
+    else scheduleBackgroundReminders();
+  });
+}
+
+initNativeIntegrations();
+
 // ============ SCREENS ============
 let currentScreen = "dashboard";
 
@@ -1427,7 +1566,7 @@ function renderDashboard(){
     const resultColor = lr.result==="W" ? "var(--good)" : lr.result==="L" ? "var(--danger)" : "var(--ice-dim)";
     card.innerHTML = `
       <p style="margin:0 0 4px; font-family:var(--font-display); font-weight:600; font-size:16px;">
-        Snow FC ${lr.homeGoals} – ${lr.awayGoals} ${lr.opponent}
+        Grassroots FC ${lr.homeGoals} – ${lr.awayGoals} ${lr.opponent}
       </p>
       <p style="margin:0 0 4px; font-size:12px; color:${resultColor}; font-family:var(--font-mono);">
         ${lr.result==="W"?"WIN":lr.result==="L"?"LOSS":"DRAW"} · Fan interest ${lr.fanDelta>=0?"+":""}${lr.fanDelta}
@@ -2189,6 +2328,7 @@ let matchInProgress = false;
 function startMatch(){
   if(matchInProgress) return;
   matchInProgress = true;
+  haptic("LIGHT");
   clearTimeout(matchTimer);
   clearInterval(clockTimer);
   try{
@@ -2207,7 +2347,7 @@ function startMatch(){
     displayMinute = 0;
     clearInterval(clockTimer);
 
-    document.getElementById("sbHome").textContent = "SNOW FC";
+    document.getElementById("sbHome").textContent = "GRASSROOTS";
     document.getElementById("sbAway").textContent = opp.name.toUpperCase().slice(0,10);
     document.getElementById("venueTag").textContent = isHomeFixture ? "HOME FIXTURE" : "AWAY FIXTURE";
     document.getElementById("sbScore").textContent = "0 – 0";
@@ -2371,7 +2511,7 @@ function simulateMatch(xi, homeStr, awayStr, oppName){
           const fallbackPool = homeActive.filter(p=>p.id!==player.id);
           const assistPlayer = Math.random()<0.7 ? pick(assistPool.length ? assistPool : fallbackPool) : null;
           if(assistPlayer){ if(!playerStats[assistPlayer.id]) playerStats[assistPlayer.id]={goals:0,assists:0,sot:0,off:0,blocked:0,yellow:0,red:false}; playerStats[assistPlayer.id].assists++; }
-          events.push({minute, type:"goal", team:"home", text:`GOAL! ${line} Snow FC ${hg}-${ag}.`, scorer:player.name, assist: assistPlayer ? assistPlayer.name : null});
+          events.push({minute, type:"goal", team:"home", text:`GOAL! ${line} Grassroots FC ${hg}-${ag}.`, scorer:player.name, assist: assistPlayer ? assistPlayer.name : null});
         } else if(roll < 0.55){
           homeShots++; homeSOT++; theirSaves++; playerStats[player.id].sot++;
           events.push({minute, type:"normal", team:"home", text: savedQueueHome().replace("{n}", player.name)});
@@ -2465,7 +2605,7 @@ function simulateMatch(xi, homeStr, awayStr, oppName){
 
   events.push({minute:45, type:"meta", text:"Half-time."});
   events.sort((a,b)=> a.minute - b.minute);
-  events.push({minute:90, type:"meta", text:`Full-time. Snow FC ${hg}-${ag} ${oppName}.`});
+  events.push({minute:90, type:"meta", text:`Full-time. Grassroots FC ${hg}-${ag} ${oppName}.`});
 
   const totalPhaseCount = homePhases + awayPhases;
   const homePossession = totalPhaseCount>0 ? Math.round((homePhases/totalPhaseCount)*100) : 50;
@@ -2619,6 +2759,7 @@ function playNextTick(){
       if(ev.team==="home") liveHomeGoals++;
       else liveAwayGoals++;
       document.getElementById("sbScore").textContent = liveHomeGoals + " – " + liveAwayGoals;
+      haptic(ev.team==="home" ? "HEAVY" : "LIGHT");
     }
     displayMinute = ev.minute!=null ? ev.minute : displayMinute;
     document.getElementById("sbMinute").textContent = ev.minute!=null ? ev.minute+"'" : "";
@@ -2708,6 +2849,7 @@ function showStatsTab(tab){
 }
 
 function finishMatch(){
+  haptic("MEDIUM");
   document.getElementById("skipBtn").style.display = "none";
   document.getElementById("continueBtn").style.display = "block";
   const r = pendingResult;
@@ -2903,7 +3045,7 @@ function handleSeasonEnd(){
     const def = clamp(base+rand(-10,10), 30, 96);
     return {...o, attack, mid, def, strength: Math.round((attack+mid+def)/3)};
   });
-  state.table = [{name:"Snow FC", p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0, own:true}];
+  state.table = [{name:"Grassroots FC", p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0, own:true}];
   state.opponents.forEach(o=>{
     state.table.push({name:o.name, p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0, own:false});
   });
