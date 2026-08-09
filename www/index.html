@@ -867,6 +867,19 @@ function genPlayer(position){
 // isolated feature rather than extending the existing structure — each tier's `type` drives
 // the badge shown next to its label in the UI, so players don't expect a dramatic rebuild
 // on every single upgrade.
+// Women's Stadium (the visual build-out of the Women's Facility campus plot — see
+// buyWomensFacility() — which has been gameplay-complete with no art of its own since it
+// shipped) was originally slated for an early/mid tier here, but is deprioritized to the
+// final tier (index 16, "Elite Stadium" below). Two targeted approaches were tried and both
+// hit real technical ceilings rather than needing more prompt iteration: a full-scene edit
+// with relocation/resize instructions (the model wouldn't respect plot boundaries or
+// footprint size), and isolated sticker generation composited onto the base photo (camera
+// angle and color-tone matching worked, but pixel-level seam/mask precision stayed visibly
+// imperfect after multiple refinement passes). Both failure modes are sidestepped by
+// requesting it as part of one whole-scene regeneration instead — the same technique used
+// for tier 5 and tier 10 — which is why it's now bundled into the final tier's full rebuild.
+// Until then, its plot (bottom-left training pitch area, next to tier 11's entrance atrium)
+// is reserved and must not be claimed by any other tier's art.
 const STADIUM_MAX_LEVEL = 16;
 const STADIUM_TIERS = [
   { type:"Structural", label:"Original Ground",    desc:"One grandstand, three open sides" },
@@ -885,7 +898,7 @@ const STADIUM_TIERS = [
   { type:"Cosmetic",   label:"Pitch Advertising",   desc:"Generic hoarding boards around pitch" },
   { type:"Structural", label:"Executive Boxes",     desc:"Luxury boxes, all 4 sides simultaneously" },
   { type:"Cosmetic",   label:"Club Monument",       desc:"Statue/plaza feature" },
-  { type:"Structural", label:"Elite Stadium",       desc:"Third deck, all 4 sides — showpiece finale" }
+  { type:"Structural", label:"Elite Stadium",       desc:"Third deck, all 4 sides, plus the long-deferred Women's Stadium — showpiece finale" }
 ];
 
 function stadiumCapacity(){
