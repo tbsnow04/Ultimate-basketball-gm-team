@@ -2031,18 +2031,18 @@ function facilityStickerImage(key, level){
 // Where a facility's sticker gets perspective-warped onto the aerial CAMPUS_BASE_IMAGE
 // photo. Quads are 4 corners [N(far/top), E(right), S(near/bottom), W(left)] measured
 // directly off the 1680x944 photo pixels (all CAMPUS_BASE_IMAGE_TIERx constants share
-// that resolution). Measured on tier0 and tier16 independently for the Youth Academy
-// plot and found to agree within ~10px — well inside measurement noise — so one quad
-// covers every stadium tier for this plot. That won't necessarily hold for a plot right
-// next to the stadium building itself (whose surrounding footprint visibly changes
-// across tiers), which is why this is a list of tier ranges per facility rather than a
-// single quad: a facility that DOES drift can just add a second {minTier,maxTier,quad}
-// entry later without any other code changing.
-const FACILITY_MAP_PLOTS = {
-  academy: [
-    { minTier: 0, maxTier: 16, quad: [[1517,182],[1596,316],[1364,455],[1284,320]] }
-  ]
-};
+// that resolution). A facility that DOES drift across tiers (e.g. a plot right next to
+// the stadium building itself, whose surroundings visibly change) can list more than
+// one {minTier,maxTier,quad} entry without any other code changing.
+//
+// Empty for now: warping the Youth Academy hero-shot render onto its plot distorted
+// the roofline/windows (it was shot close-up at its own camera angle/zoom, not at the
+// plot's actual far-away isometric angle) and its daytime lighting clashed with the
+// aerial photo's evening tiers. The compositing engine below stays ready to go — this
+// object just needs a proper decal shot to match the plot's real angle/zoom/lighting
+// before any facility renders on the map again. The thumbnail-in-card view is
+// unaffected either way.
+const FACILITY_MAP_PLOTS = {};
 function facilityMapQuad(key, stadiumLevel){
   const ranges = FACILITY_MAP_PLOTS[key];
   if(!ranges) return null;
