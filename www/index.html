@@ -884,50 +884,65 @@ function genPlayer(position){
 // so nobody loses progress they paid for, even if that facility's own checkpoint sits
 // further along the sequence than the stadium-tier snap reached.
 //
-// Stage A (index 0-4): tight stadium shot, no campus, no facilities.
-// Stage B (index 5-9, Property Expansion #1 entering index 5): modest campus reveal --
-//   grassroots cluster (Training Pitch, Medical, Youth Academy, Scouting) interleaved
-//   with the stadium's own tier art.
-// Stage C (index 10-14, Property Expansion #2 entering index 10, sized to also cover
-//   Stage D): full grand campus reveal. Grand Entrance (index 10) folds in what used to
-//   be the separate Car Park & Access Road facility -- its effect is unconditional from
-//   here on, no independent purchase (see carParkCapacity() below). Commercial cluster
-//   (Club Store, Club Offices) interleaved with the remaining stadium tiers.
-// Stage D (index 15-16): elite showpiece finale. Indoor Training Facility stacks with
-//   Training Pitch for a bigger development bonus, not a different one (see
-//   tickPlayerDevelopment()). Women's Stadium (index 16) supersedes the old
-//   division-gated Women's Facility purchase entirely -- reaching this checkpoint is now
-//   the only requirement.
+// Camera/composition (art-direction spec, carried here as the `stage` field on each
+// entry below so code and art stay pinned to the same source of truth): 4 camera stages
+// A-D, all a consistent 16:9 (1680x944) daytime shot. The stand sits on the right side
+// of frame facing left in every stage; the camera pulls straight back along that same
+// fixed axis as tiers progress rather than re-angling per stage, and the road stays
+// fixed along the front/bottom edge throughout. Real art per checkpoint doesn't exist
+// yet -- see PROGRESSION_IMAGE_AT_INDEX -- but every future photo for a given stage
+// must match that stage's pull-back distance and this shared framing.
+//   Stage A (index 0-4): tightest shot, no campus visible yet.
+//   Stage B (index 5-13): first campus reveal -- grassroots cluster (Training Pitch,
+//     Medical, Youth Academy, Scouting) appears back-left, unlocked in order,
+//     interleaved with this stage's own stadium tiers.
+//   Stage C (index 14-20): full grand campus reveal, sized to also reserve the land
+//     Stage D needs so a third property expansion is never required. Grand Entrance
+//     (stadium10, front of frame) folds in what used to be the separate Car Park &
+//     Access Road facility -- unconditional from here on, no independent purchase (see
+//     carParkCapacity() below) -- and reserves the middle-left plot beside the stand for
+//     the Women's Stadium, visible but unbuilt until Stage D. Commercial cluster (Club
+//     Store, Club Offices) appears back-right, behind the stand.
+//   Stage D (index 21-23): elite showpiece finale. Indoor Training Facility (grassroots
+//     cluster, back-left) stacks with Training Pitch for a bigger development bonus, not
+//     a different one (see tickPlayerDevelopment()). Women's Stadium fills the plot
+//     Stage C reserved beside the stand and supersedes the old division-gated Women's
+//     Facility purchase entirely -- reaching this final checkpoint is now the only
+//     requirement.
+// The stand + pitch itself (middle-right, unchanged in frame position since Stage A)
+// is the through-line every stadium-kind checkpoint keeps building on; `zone` below
+// marks only the entries that introduce or occupy one of the distinct campus plots
+// (grassroots / commercial / entrance / womensStadium) rather than the core stand.
 //
 // STADIUM_MAX_LEVEL (0-16) is kept around purely for the legacy save-migration chain
 // below in continueGame(), which predates PROGRESSION and still clamps old-shape saves
 // against it before they ever reach the merge-into-PROGRESSION step.
 const STADIUM_MAX_LEVEL = 16;
 const PROGRESSION = [
-  { id:"stadium0",  kind:"stadium",  label:"Original Ground",    type:"Structural", desc:"One grandstand, three open sides" },
-  { id:"stadium1",  kind:"stadium",  label:"Grass Banking",      type:"Structural", desc:"Grassy mound, all 3 open sides" },
-  { id:"stadium2",  kind:"stadium",  label:"Terracing",          type:"Structural", desc:"Open wooden benches, all 3 open sides" },
-  { id:"stadium3",  kind:"stadium",  label:"Covered Stand",      type:"Structural", desc:"Roof, bottom side only" },
-  { id:"stadium4",  kind:"stadium",  label:"Full Roof",          type:"Structural", desc:"Roof on all 3 open sides" },
-  { id:"stadium5",  kind:"stadium",  label:"Modern Bowl",        type:"Structural", desc:"All 4 sides upgraded to seating + matching grandstand, modernized finish", expansion:1 },
-  { id:"trainingPitch", kind:"facility", label:"Training Pitch", cost:20000, desc:"A two-pitch training complex that speeds up development for your young players." },
-  { id:"stadium6",  kind:"stadium",  label:"Big Screen",         type:"Cosmetic", desc:"Scoreboard/screen added" },
-  { id:"medical",   kind:"facility", label:"Medical & Sports Science Center", cost:30000, desc:"Reduces how often players get injured and how long they're out." },
-  { id:"stadium7",  kind:"stadium",  label:"Premium Pitch",      type:"Cosmetic", desc:"Pristine mowed pattern turf" },
-  { id:"academy",   kind:"facility", label:"Youth Academy",      cost:35000, desc:"Periodically graduates a young, cheap, promising player into your first team." },
-  { id:"stadium8",  kind:"stadium",  label:"Team Dugouts",       type:"Cosmetic", desc:"Covered player benches/technical areas" },
-  { id:"scouting",  kind:"facility", label:"Scouting & Video Analysis", cost:26000, desc:"Reveals hidden potential on your young players." },
-  { id:"stadium9",  kind:"stadium",  label:"Second Tier",        type:"Structural", desc:"Second deck, all 4 sides simultaneously, with modernized floodlights" },
-  { id:"stadium10", kind:"stadium",  label:"Grand Entrance",     type:"Cosmetic", desc:"Entrance plaza / tunnel structure, car park & access road", expansion:2 },
-  { id:"megastore", kind:"facility", label:"Club Store",         cost:25000, desc:"Passive income every matchday, home or away." },
-  { id:"stadium11", kind:"stadium",  label:"Perimeter Upgrade",  type:"Cosmetic", desc:"Upgraded fencing, gates, landscaping" },
-  { id:"clubOffices", kind:"facility", label:"Club Offices",     cost:28000, desc:"Ticket office, press room and community foundation in one building — boosts ticket & sponsorship income and slowly builds fan interest." },
-  { id:"stadium12", kind:"stadium",  label:"Pitch Advertising",  type:"Cosmetic", desc:"Generic hoarding boards around pitch" },
-  { id:"stadium13", kind:"stadium",  label:"Executive Boxes",    type:"Structural", desc:"Luxury boxes, all 4 sides simultaneously" },
-  { id:"stadium14", kind:"stadium",  label:"Club Monument",      type:"Cosmetic", desc:"Statue/plaza feature" },
-  { id:"stadium15", kind:"stadium",  label:"Third Tier",         type:"Structural", desc:"Third deck, all 4 sides simultaneously, with a cantilevered canopy roof" },
-  { id:"indoorTraining", kind:"facility", label:"Indoor Training Facility", cost:60000, desc:"Stacks with the Training Pitch for an even bigger development-speed boost." },
-  { id:"stadium16", kind:"stadium",  label:"Women's Stadium",    type:"Structural", desc:"Standalone covered stadium for the women's team — showpiece finale" }
+  { id:"stadium0",  kind:"stadium",  label:"Original Ground",    type:"Structural", desc:"One grandstand, three open sides", stage:"A" },
+  { id:"stadium1",  kind:"stadium",  label:"Grass Banking",      type:"Structural", desc:"Grassy mound, all 3 open sides", stage:"A" },
+  { id:"stadium2",  kind:"stadium",  label:"Terracing",          type:"Structural", desc:"Open wooden benches, all 3 open sides", stage:"A" },
+  { id:"stadium3",  kind:"stadium",  label:"Covered Stand",      type:"Structural", desc:"Roof, bottom side only", stage:"A" },
+  { id:"stadium4",  kind:"stadium",  label:"Full Roof",          type:"Structural", desc:"Roof on all 3 open sides", stage:"A" },
+  { id:"stadium5",  kind:"stadium",  label:"Modern Bowl",        type:"Structural", desc:"All 4 sides upgraded to seating + matching grandstand, modernized finish", stage:"B", expansion:1 },
+  { id:"trainingPitch", kind:"facility", label:"Training Pitch", cost:20000, desc:"A two-pitch training complex that speeds up development for your young players.", stage:"B", zone:"grassroots" },
+  { id:"stadium6",  kind:"stadium",  label:"Big Screen",         type:"Cosmetic", desc:"Scoreboard/screen added", stage:"B" },
+  { id:"medical",   kind:"facility", label:"Medical & Sports Science Center", cost:30000, desc:"Reduces how often players get injured and how long they're out.", stage:"B", zone:"grassroots" },
+  { id:"stadium7",  kind:"stadium",  label:"Premium Pitch",      type:"Cosmetic", desc:"Pristine mowed pattern turf", stage:"B" },
+  { id:"academy",   kind:"facility", label:"Youth Academy",      cost:35000, desc:"Periodically graduates a young, cheap, promising player into your first team.", stage:"B", zone:"grassroots" },
+  { id:"stadium8",  kind:"stadium",  label:"Team Dugouts",       type:"Cosmetic", desc:"Covered player benches/technical areas", stage:"B" },
+  { id:"scouting",  kind:"facility", label:"Scouting & Video Analysis", cost:26000, desc:"Reveals hidden potential on your young players.", stage:"B", zone:"grassroots" },
+  { id:"stadium9",  kind:"stadium",  label:"Second Tier",        type:"Structural", desc:"Second deck, all 4 sides simultaneously, with modernized floodlights", stage:"B" },
+  { id:"stadium10", kind:"stadium",  label:"Grand Entrance",     type:"Cosmetic", desc:"Entrance plaza / tunnel structure, car park & access road", stage:"C", zone:"entrance", expansion:2 },
+  { id:"megastore", kind:"facility", label:"Club Store",         cost:25000, desc:"Passive income every matchday, home or away.", stage:"C", zone:"commercial" },
+  { id:"stadium11", kind:"stadium",  label:"Perimeter Upgrade",  type:"Cosmetic", desc:"Upgraded fencing, gates, landscaping", stage:"C" },
+  { id:"clubOffices", kind:"facility", label:"Club Offices",     cost:28000, desc:"Ticket office, press room and community foundation in one building — boosts ticket & sponsorship income and slowly builds fan interest.", stage:"C", zone:"commercial" },
+  { id:"stadium12", kind:"stadium",  label:"Pitch Advertising",  type:"Cosmetic", desc:"Generic hoarding boards around pitch", stage:"C" },
+  { id:"stadium13", kind:"stadium",  label:"Executive Boxes",    type:"Structural", desc:"Luxury boxes, all 4 sides simultaneously", stage:"C" },
+  { id:"stadium14", kind:"stadium",  label:"Club Monument",      type:"Cosmetic", desc:"Statue/plaza feature", stage:"C" },
+  { id:"stadium15", kind:"stadium",  label:"Third Tier",         type:"Structural", desc:"Third deck, all 4 sides simultaneously, with a cantilevered canopy roof", stage:"D" },
+  { id:"indoorTraining", kind:"facility", label:"Indoor Training Facility", cost:60000, desc:"Stacks with the Training Pitch for an even bigger development-speed boost.", stage:"D", zone:"grassroots" },
+  { id:"stadium16", kind:"stadium",  label:"Women's Stadium",    type:"Structural", desc:"Standalone covered stadium for the women's team — showpiece finale", stage:"D", zone:"womensStadium" }
 ];
 const PROGRESSION_MAX_INDEX = PROGRESSION.length - 1;
 const PROGRESSION_INDEX_BY_ID = {};
@@ -1878,7 +1893,9 @@ const CAMPUS_BASE_IMAGE_TIER16 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQA
 // everything from index 5 onward (the first campus reveal) uses the wide framing.
 const STADIUM_TIER_TIGHT_IMAGES = [STADIUM_HEADER_IMAGE, STADIUM_HEADER_IMAGE_TIER1, STADIUM_HEADER_IMAGE_TIER2, STADIUM_HEADER_IMAGE_TIER3, STADIUM_HEADER_IMAGE_TIER4, STADIUM_HEADER_IMAGE_TIER5, STADIUM_HEADER_IMAGE_TIER6, STADIUM_HEADER_IMAGE_TIER7, STADIUM_HEADER_IMAGE_TIER8, STADIUM_HEADER_IMAGE_TIER9, STADIUM_HEADER_IMAGE_TIER10, STADIUM_HEADER_IMAGE_TIER11, STADIUM_HEADER_IMAGE_TIER12, STADIUM_HEADER_IMAGE_TIER13, STADIUM_HEADER_IMAGE_TIER14, STADIUM_HEADER_IMAGE_TIER15, STADIUM_HEADER_IMAGE_TIER16];
 const STADIUM_TIER_WIDE_IMAGES = [CAMPUS_BASE_IMAGE, CAMPUS_BASE_IMAGE_TIER1, CAMPUS_BASE_IMAGE_TIER2, CAMPUS_BASE_IMAGE_TIER3, CAMPUS_BASE_IMAGE_TIER4, CAMPUS_BASE_IMAGE_TIER5, CAMPUS_BASE_IMAGE_TIER6, CAMPUS_BASE_IMAGE_TIER7, CAMPUS_BASE_IMAGE_TIER8, CAMPUS_BASE_IMAGE_TIER9, CAMPUS_BASE_IMAGE_TIER10, CAMPUS_BASE_IMAGE_TIER11, CAMPUS_BASE_IMAGE_TIER12, CAMPUS_BASE_IMAGE_TIER13, CAMPUS_BASE_IMAGE_TIER14, CAMPUS_BASE_IMAGE_TIER15, CAMPUS_BASE_IMAGE_TIER16];
-const STAGE_A_LAST_INDEX = 4;
+// Derived from PROGRESSION's own `stage` field (see the comment above PROGRESSION)
+// rather than a hardcoded number, so this can never silently drift out of sync with it.
+const STAGE_A_LAST_INDEX = PROGRESSION.reduce((last,p,i)=> p.stage==="A" ? i : last, 0);
 
 // One image per PROGRESSION index. Stadium checkpoints pick tight-vs-wide framing by
 // their position and look up their tier's photo; facility checkpoints use their own
